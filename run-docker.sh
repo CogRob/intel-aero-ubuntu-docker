@@ -7,5 +7,6 @@ docker run -it   --rm    -v /home/users/vdhiman:/home/users/vdhiman:rw  \
        -e XAUTHORITY=$XAUTH -v $XAUTH:$XAUTH \
        -v /tmp/.X11-unix:/tmp/.X11-unix \
        -v /etc/localtime:/etc/localtime:ro \
+       -v /boot/efi/:/boot/efi/:rw \
        --privileged \
        --security-opt seccomp=unconfined  intel-aero-ubuntu
