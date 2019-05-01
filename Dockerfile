@@ -87,3 +87,5 @@ RUN apt-get -y update && \
 
 COPY post-install.sh /root/post-install.sh
 RUN chmod +x /root/post-install.sh
+
+WORKDIR /data/cogrob/code
