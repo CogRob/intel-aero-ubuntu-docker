@@ -83,9 +83,14 @@ enable-shm = false\n\
 > /etc/pulse/client.conf
 
 RUN apt-get -y update && \
-	apt-get -y install dmidecode psmisc
+	apt-get -y install dmidecode psmisc \
+    python-pip python-opencv python-opencv-apps python-zbar zbar-tools
+    vim-python-jedi vim-python-jedi vim-nox-py2 \
+RUN pip install --upgrade pip
+RUN pip install Cython numpy
+RUN pip install pyrealsense
 
-COPY post-install.sh /root/post-install.sh
-RUN chmod +x /root/post-install.sh
+COPY systemctl.py /usr/bin/systemctl
+CMD ["/usr/bin/systemctl"]
 
 WORKDIR /data/cogrob/code
