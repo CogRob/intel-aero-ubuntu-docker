@@ -17,6 +17,7 @@ docker run -it   --rm  \
        -v /etc/localtime:/etc/localtime:ro \
        -v /data/cogrob/:/data/cogrob/ \
        -v /lib/systemd/system/avahi-daemon.socket:/lib/systemd/system/avahi-daemon.socket \
+       -v /dev/:/dev/ \
        $DISPOPTS $NVIDIAOPTS \
        --privileged \
        --net host \
