@@ -85,10 +85,18 @@ enable-shm = false\n\
 RUN apt-get -y update && \
 	apt-get -y install dmidecode psmisc \
     python-pip python-opencv python-opencv-apps python-zbar zbar-tools \
-    vim-python-jedi vim-python-jedi vim-nox-py2
+    vim-python-jedi vim-python-jedi vim-nox-py2 \
+    geographiclib-tools \
+    ros-kinetic-realsense-camera \
+    ros-kinetic-mavros-extras \
+    ros-kinetic-mavros
+RUN apt-get -y update && \
+ 	apt-get -y install ntpdate
+
 RUN pip install --upgrade pip
 RUN pip install Cython numpy
 RUN pip install pyrealsense
+RUN geographiclib-get-geoids egm96-5
 
 COPY systemctl.py /usr/bin/systemctl
 RUN chmod +x /usr/bin/systemctl

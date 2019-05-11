@@ -13,6 +13,6 @@
 
 # sed -i -e "s#/dev/ttyS1#/dev/${TTYID}#" /etc/mavlink-router/main.conf
 # sed -i -e "s#/tty/ttyS1#/tty/${TTYID}#" /lib/systemd/system/mavlink-routerd.service
-echo 4 > /sys/class/tty/${TTYID}/rx_trig_bytes
+echo 4 > /sys/class/tty/ttyS1/rx_trig_bytes
 nohup /usr/bin/mavlink-routerd &> /var/log/mavlink-routerd.log
 #systemctl restart mavlink-router
