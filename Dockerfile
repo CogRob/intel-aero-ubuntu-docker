@@ -89,9 +89,10 @@ RUN apt-get -y update && \
     geographiclib-tools \
     ros-kinetic-realsense-camera \
     ros-kinetic-mavros-extras \
-    ros-kinetic-mavros
-RUN apt-get -y update && \
- 	apt-get -y install ntpdate
+    ros-kinetic-mavros \
+    ntpdate \
+    net-tools \
+    iputils-ping
 
 RUN pip install --upgrade pip
 RUN pip install Cython numpy
