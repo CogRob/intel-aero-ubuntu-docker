@@ -15,4 +15,6 @@
 # sed -i -e "s#/tty/ttyS1#/tty/${TTYID}#" /lib/systemd/system/mavlink-routerd.service
 echo 4 > /sys/class/tty/ttyS1/rx_trig_bytes
 nohup /usr/bin/mavlink-routerd &> /var/log/mavlink-routerd.log
+nohup /usr/sbin/avahi-daemon -s
+nohup /usr/bin/csd &> /var/log/csd.log
 #systemctl restart mavlink-router
