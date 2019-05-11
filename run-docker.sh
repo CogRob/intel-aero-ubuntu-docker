@@ -2,13 +2,15 @@ sudo systemctl stop mavlink-router
 sudo systemctl stop csd
 sudo systemctl stop avahi-daemon
 if [ ! -z $DISPLAY ]; then
+    XAUTH=/tmp/.docker.xauth
+    xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
     DISPOPTS="-e DISPLAY=$DISPLAY \
-       -e XAUTHORITY=/tmp/.docker.xauth \
-       -v /tmp/.docker.xauth:/tmp/.docker.xauth \
+       -e XAUTHORITY=$XAUTH \
+       -v $XAUTH:$XAUTH \
        -v /tmp/.X11-unix:/tmp/.X11-unix"
 fi
 if [ -f /usr/bin/nvidia-docker ]; then
-    $NVIDIAOPTS="--runtime nvidia";
+    NVIDIAOPTS="--runtime nvidia";
 fi
 docker run -it   --rm  \
        -e TERM \
