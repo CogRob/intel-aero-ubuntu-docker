@@ -56,14 +56,50 @@ Address = 192.168.1.147\n\
 ## RUN cd /etc/aerofc/px4/ \
 ##     && aerofc-update.sh nuttx-aerofc-v1-default.px4
 ## 
-RUN cd /tmp \
-    && apt-get -y install git libusb-1.0-0-dev pkg-config libgtk-3-dev libglfw3-dev cmake \
-    && git clone -b legacy --single-branch https://github.com/IntelRealSense/librealsense.git \
+
+
+RUN apt-get -y update && \
+	apt-get -y install dmidecode psmisc \
+    python-pip python-opencv python-opencv-apps python-zbar zbar-tools \
+    vim-python-jedi vim-python-jedi vim-nox-py2 \
+    geographiclib-tools \
+    ros-kinetic-realsense-camera \
+    ros-kinetic-mavros-extras \
+    ros-kinetic-mavros \
+    ros-kinetic-cv-bridge \
+    ntpdate \
+    net-tools \
+    iputils-ping \
+    lsof \
+    avahi-daemon \
+    git libusb-1.0-0-dev pkg-config libgtk-3-dev libglfw3-dev cmake
+
+
+## RUN mkdir /tmp/legacy-librealsense \
+##     && cd /tmp/legacy-librealsense \
+##     && apt-get -y install git libusb-1.0-0-dev pkg-config libgtk-3-dev libglfw3-dev cmake \
+##     && git clone -b legacy --single-branch https://github.com/IntelRealSense/librealsense.git \
+##     && cd librealsense \
+##     && mkdir build && cd build \
+##     && cmake ../ -DBUILD_EXAMPLES=false -DBUILD_GRAPHICAL_EXAMPLES=false \
+##     && make \
+##     && make install
+
+
+RUN mkdir /tmp/librealsense2 \
+    && cd /tmp/librealsense2 \
+    && git clone -b v2.21.0 --single-branch https://github.com/IntelRealSense/librealsense.git \
     && cd librealsense \
     && mkdir build && cd build \
-    && cmake ../ -DBUILD_EXAMPLES=true -DBUILD_GRAPHICAL_EXAMPLES=true \
+    && cmake ../ -DBUILD_EXAMPLES=false -DBUILD_GRAPHICAL_EXAMPLES=false \
     && make \
     && make install
+
+RUN mkdir -p /root/code/realsense_ros \
+    && cd /root/code/realsense_ros \
+    && git clone -b 2.2.3 https://github.com/IntelRealSense/realsense-ros.git  src \
+    && . /opt/ros/kinetic/setup.sh \
+    && catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release
 
 
 ### End of Instructions to install Ubuntu 16.04 on intel-aero ###
@@ -82,31 +118,15 @@ enable-shm = false\n\
 \n'\
 > /etc/pulse/client.conf
 
-RUN apt-get -y update && \
-	apt-get -y install dmidecode psmisc \
-    python-pip python-opencv python-opencv-apps python-zbar zbar-tools \
-    vim-python-jedi vim-python-jedi vim-nox-py2 \
-    geographiclib-tools \
-    ros-kinetic-realsense-camera \
-    ros-kinetic-mavros-extras \
-    ros-kinetic-mavros \
-    ntpdate \
-    net-tools \
-    iputils-ping \
-    lsof \
-    avahi-daemon
-
 RUN pip install --upgrade pip
-RUN pip install Cython numpy
-RUN pip install pyrealsense
+# RUN pip install Cython numpy
+# RUN pip install pyrealsense
 RUN geographiclib-get-geoids egm96-5
 
 COPY systemctl.py /usr/bin/systemctl
 RUN chmod +x /usr/bin/systemctl
 COPY post-install.sh /root/post-install.sh
+RUN chmod +x /root/post-install.sh
 CMD ["/root/post-install.sh"]
-CMD ["/usr/bin/mavlink-routerd"]
-CMD ["/usr/bin/avahi-daemon", "-s"]
-CMD ["/usr/bin/csd"]
 
 WORKDIR /data/cogrob/code
