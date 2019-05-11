@@ -1,3 +1,4 @@
+FROM nvidia/opengl:1.0-glvnd-devel-ubuntu16.04 as glvnd
 FROM ros:kinetic-robot-xenial
 
 ENV TZ=America/Los_Angeles
@@ -86,12 +87,15 @@ RUN apt-get -y update && \
 ##     && make install
 
 
-RUN mkdir /tmp/librealsense2 \
-    && cd /tmp/librealsense2 \
+# Instructions from https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md#make-ubuntu-up-to-date
+RUN mkdir -p /root/code/librealsense2 \
+    && cd /root/code/librealsense2 \
     && git clone -b v2.21.0 --single-branch https://github.com/IntelRealSense/librealsense.git \
     && cd librealsense \
+    && bash ./scripts/setup_udev_rules.sh #### bash ./scripts/patch-realsense-ubuntu-lts.sh \
+    && echo 'hid_sensor_custom' | tee -a /etc/modules \
     && mkdir build && cd build \
-    && cmake ../ -DBUILD_EXAMPLES=false -DBUILD_GRAPHICAL_EXAMPLES=false \
+    && cmake ../ -DBUILD_EXAMPLES=true -DBUILD_GRAPHICAL_EXAMPLES=true \
     && make \
     && make install
 
@@ -117,6 +121,30 @@ daemon-binary = /bin/true\n\
 enable-shm = false\n\
 \n'\
 > /etc/pulse/client.conf
+
+RUN apt-get update && apt-get -y install x11vnc xvfb mesa-utils usbutils
+RUN     mkdir ~/.vnc
+RUN     x11vnc -storepasswd 1234 ~/.vnc/passwd
+
+####### Make OpenGL work with nvidia ### 
+# Copied from : https://github.com/osrf/rocker/blob/master/src/rocker/templates/nvidia_snippet.Dockerfile.em
+# Open nvidia-docker2 GL support
+# Requires installation of nvidia-docker2
+COPY --from=glvnd /usr/local/lib/x86_64-linux-gnu /usr/local/lib/x86_64-linux-gnu
+COPY --from=glvnd /usr/local/lib/i386-linux-gnu /usr/local/lib/i386-linux-gnu
+COPY --from=glvnd /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
+COPY --from=glvnd /usr/lib/i386-linux-gnu /usr/lib/i386-linux-gnu
+# if the path is alreaady present don't fail because of being unable to append
+RUN ( echo '/usr/local/lib/x86_64-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && ldconfig || grep -q /usr/local/lib/x86_64-linux-gnu /etc/ld.so.conf.d/glvnd.conf ) && \
+    ( echo '/usr/local/lib/i386-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf &&  ldconfig || grep -q /usr/local/lib/i386-linux-gnu /etc/ld.so.conf.d/glvnd.conf )
+ENV LD_LIBRARY_PATH /usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+COPY --from=glvnd /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json
+
+
+ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
+####### Make OpenGL work with nvidia ### 
 
 RUN pip install --upgrade pip
 # RUN pip install Cython numpy
