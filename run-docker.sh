@@ -1,3 +1,5 @@
+systemctl stop mavlink-routerd
+systemctl stop csd
 docker run -it   --rm  \
        -e TERM \
        -v /etc/localtime:/etc/localtime:ro \

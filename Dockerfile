@@ -92,7 +92,9 @@ RUN apt-get -y update && \
     ros-kinetic-mavros \
     ntpdate \
     net-tools \
-    iputils-ping
+    iputils-ping \
+    lsof \
+    avahi-daemon
 
 RUN pip install --upgrade pip
 RUN pip install Cython numpy
@@ -101,6 +103,10 @@ RUN geographiclib-get-geoids egm96-5
 
 COPY systemctl.py /usr/bin/systemctl
 RUN chmod +x /usr/bin/systemctl
-CMD ["/usr/bin/systemctl", "init", "mavlink-router"]
+COPY post-install.sh /root/post-install.sh
+CMD ["/root/post-install.sh"]
+CMD ["/usr/bin/mavlink-routerd"]
+CMD ["/usr/bin/avahi-daemon", "-s"]
+CMD ["/usr/bin/csd"]
 
 WORKDIR /data/cogrob/code
