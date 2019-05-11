@@ -1,4 +1,3 @@
-FROM nvidia/opengl:1.0-glvnd-devel-ubuntu16.04 as glvnd
 FROM ros:kinetic-robot-xenial
 
 ENV TZ=America/Los_Angeles
@@ -126,26 +125,6 @@ RUN apt-get update && apt-get -y install x11vnc xvfb mesa-utils usbutils
 RUN     mkdir ~/.vnc
 RUN     x11vnc -storepasswd 1234 ~/.vnc/passwd
 
-####### Make OpenGL work with nvidia ### 
-# Copied from : https://github.com/osrf/rocker/blob/master/src/rocker/templates/nvidia_snippet.Dockerfile.em
-# Open nvidia-docker2 GL support
-# Requires installation of nvidia-docker2
-COPY --from=glvnd /usr/local/lib/x86_64-linux-gnu /usr/local/lib/x86_64-linux-gnu
-COPY --from=glvnd /usr/local/lib/i386-linux-gnu /usr/local/lib/i386-linux-gnu
-COPY --from=glvnd /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
-COPY --from=glvnd /usr/lib/i386-linux-gnu /usr/lib/i386-linux-gnu
-# if the path is alreaady present don't fail because of being unable to append
-RUN ( echo '/usr/local/lib/x86_64-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && ldconfig || grep -q /usr/local/lib/x86_64-linux-gnu /etc/ld.so.conf.d/glvnd.conf ) && \
-    ( echo '/usr/local/lib/i386-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf &&  ldconfig || grep -q /usr/local/lib/i386-linux-gnu /etc/ld.so.conf.d/glvnd.conf )
-ENV LD_LIBRARY_PATH /usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-
-COPY --from=glvnd /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json
-
-
-ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
-ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
-####### Make OpenGL work with nvidia ### 
-
 RUN pip install --upgrade pip
 # RUN pip install Cython numpy
 # RUN pip install pyrealsense
@@ -157,4 +136,4 @@ COPY post-install.sh /root/post-install.sh
 RUN chmod +x /root/post-install.sh
 CMD ["/root/post-install.sh"]
 
-WORKDIR /data/cogrob/code
+# WORKDIR /data/cogrob/code

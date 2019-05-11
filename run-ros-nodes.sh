@@ -1,5 +1,4 @@
-export ROS_IP=100.80.228.12
-source /opt/ros/kinetic/setup.bash
+source setup-ros.sh
 roscore &
 sleep 5
 roslaunch realsense_camera r200_nodelet_rgbd.launch &
