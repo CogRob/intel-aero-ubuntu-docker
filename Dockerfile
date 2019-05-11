@@ -87,11 +87,12 @@ RUN apt-get -y update && \
 
 
 # Instructions from https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md#make-ubuntu-up-to-date
+# Skipping the patch step #### bash ./scripts/patch-realsense-ubuntu-lts.sh
 RUN mkdir -p /root/code/librealsense2 \
     && cd /root/code/librealsense2 \
     && git clone -b v2.21.0 --single-branch https://github.com/IntelRealSense/librealsense.git \
     && cd librealsense \
-    && bash ./scripts/setup_udev_rules.sh #### bash ./scripts/patch-realsense-ubuntu-lts.sh \
+    && bash ./scripts/setup_udev_rules.sh \
     && echo 'hid_sensor_custom' | tee -a /etc/modules \
     && mkdir build && cd build \
     && cmake ../ -DBUILD_EXAMPLES=true -DBUILD_GRAPHICAL_EXAMPLES=true \
