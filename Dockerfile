@@ -44,7 +44,7 @@ RUN mkdir -p /etc/mavlink-router/config.d
 RUN echo '\n\
 [UdpEndpoint wifi]\n\
 Mode = Normal\n\
-Address = 192.168.1.147\n\
+Address = 100.80.226.255\n\
 \n'\
 > /etc/mavlink-router/config.d/qgc.conf
 # RUN systemctl restart mavlink-router
@@ -92,7 +92,8 @@ RUN mkdir -p /root/code/librealsense2 \
     && cd /root/code/librealsense2 \
     && git clone -b v2.21.0 --single-branch https://github.com/IntelRealSense/librealsense.git \
     && cd librealsense \
-    && bash ./scripts/setup_udev_rules.sh \
+    && ln -s /usr/src/linux-headers-4.4.76-aero-1.2 /usr/src/linux-headers-4.4.76-yocto-standard \
+    && yes | bash ./scripts/setup_udev_rules.sh \
     && echo 'hid_sensor_custom' | tee -a /etc/modules \
     && mkdir build && cd build \
     && cmake ../ -DBUILD_EXAMPLES=true -DBUILD_GRAPHICAL_EXAMPLES=true \
