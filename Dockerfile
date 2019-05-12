@@ -107,6 +107,30 @@ RUN mkdir -p /root/code/realsense_ros \
     && catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release
 
 
+RUN apt-get update && apt-get -y install \
+    libcholmod3.0.6 libsuitesparse-dev libeigen3-dev libsuitesparse-dev \
+    protobuf-compiler libnlopt-dev ros-kinetic-octomap \
+    ros-kinetic-octomap-rviz-plugins ros-kinetic-octomap-ros ros-kinetic-sophus
+
+RUN apt-get update && apt-get -y install python-argparse git-core wget zip \
+  python-empy qtcreator cmake build-essential genromfs \
+  ant protobuf-compiler libeigen3-dev libopencv-dev openjdk-8-jdk openjdk-8-jre \
+  clang-3.5 lldb-3.5 python-toml python-numpy python-pip \
+  ros-kinetic-gazebo-ros
+
+RUN pip install --upgrade pip && pip install pandas jinja2
+
+RUN cd /root/code \
+    && git clone https://github.com/szebedy/autonomous-drone.git \
+    && git submodule update --init --recursive \
+    && cd /root/code/realsense_ros/src/ \
+    && for d in ../../autonomous-drone/src/*; do ln -s ../../autonomous-drone/src/$d; done \
+    && cd /root/code/realsense_ros/ \
+    && catkin_make
+
+RUN cd /root/code/autonomous-drone/px4 &&
+    make posix_sitl_default gazebo
+
 ### End of Instructions to install Ubuntu 16.04 on intel-aero ###
 
 RUN mkdir -p /etc/pulse
