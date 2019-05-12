@@ -128,8 +128,11 @@ RUN cd /root/code \
     && cd /root/code/realsense_ros/ \
     && catkin_make
 
-RUN cd /root/code/autonomous-drone/px4 &&
-    make posix_sitl_default gazebo
+RUN cd /root/code/autonomous-drone/px4 \
+   && make posix_sitl_default gazebo
+
+RUN cd /root/code \
+    && wget http://rpg.ifi.uzh.ch/svo2/svo_binaries_1604_kinetic.zip 
 
 ### End of Instructions to install Ubuntu 16.04 on intel-aero ###
 
