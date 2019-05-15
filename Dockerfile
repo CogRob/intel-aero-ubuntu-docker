@@ -63,10 +63,10 @@ RUN apt-get -y update && \
     python-pip python-opencv python-opencv-apps python-zbar zbar-tools \
     vim-python-jedi vim-python-jedi vim-nox-py2 \
     geographiclib-tools \
-    ros-kinetic-realsense-camera \
     ros-kinetic-mavros-extras \
     ros-kinetic-mavros \
     ros-kinetic-cv-bridge \
+    ros-kinetic-image-transport \
     ntpdate \
     net-tools \
     iputils-ping \
@@ -75,20 +75,27 @@ RUN apt-get -y update && \
     git libusb-1.0-0-dev pkg-config libgtk-3-dev libglfw3-dev cmake
 
 
-## RUN mkdir /tmp/legacy-librealsense \
-##     && cd /tmp/legacy-librealsense \
-##     && apt-get -y install git libusb-1.0-0-dev pkg-config libgtk-3-dev libglfw3-dev cmake \
-##     && git clone -b legacy --single-branch https://github.com/IntelRealSense/librealsense.git \
-##     && cd librealsense \
-##     && mkdir build && cd build \
-##     && cmake ../ -DBUILD_EXAMPLES=false -DBUILD_GRAPHICAL_EXAMPLES=false \
-##     && make \
-##     && make install
+ARG build_legacy_realsense=
+### +++++ Build commands for librealsense legacy ++++++++
+RUN [ -z "$build_legacy_realsense" ] \
+    || { mkdir /tmp/legacy-librealsense \
+    && cd /tmp/legacy-librealsense \
+    && apt-get -y install git libusb-1.0-0-dev pkg-config libgtk-3-dev libglfw3-dev cmake \
+    && git clone -b legacy --single-branch https://github.com/IntelRealSense/librealsense.git \
+    && cd librealsense \
+    && mkdir build && cd build \
+    && cmake ../ -DBUILD_EXAMPLES=false -DBUILD_GRAPHICAL_EXAMPLES=false \
+    && make \
+    && make install; }
+### +++++ End of commands for librealsense legacy ++++++++
 
 
-# Instructions from https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md#make-ubuntu-up-to-date
-# Skipping the patch step #### bash ./scripts/patch-realsense-ubuntu-lts.sh
-RUN mkdir -p /root/code/librealsense2 \
+ARG build_librealsense2=
+### +++++ Build commands for librealsense2 ++++++++
+## # Instructions from https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md#make-ubuntu-up-to-date
+## # Skipping the patch step #### bash ./scripts/patch-realsense-ubuntu-lts.sh
+RUN [ -z "$build_librealsense2" ] \
+    || { mkdir -p /root/code/librealsense2 \
     && cd /root/code/librealsense2 \
     && git clone -b v2.21.0 --single-branch https://github.com/IntelRealSense/librealsense.git \
     && cd librealsense \
@@ -98,7 +105,19 @@ RUN mkdir -p /root/code/librealsense2 \
     && mkdir build && cd build \
     && cmake ../ -DBUILD_EXAMPLES=true -DBUILD_GRAPHICAL_EXAMPLES=true \
     && make \
-    && make install
+    && make install; }
+### +++++ End of commands for librealsense2 ++++++++
+
+### +++++ Distribution install commands for librealsense2 ++++++++
+RUN [ ! -z "$build_librealsense2" ] \
+    || { apt-get update && apt-get install -y software-properties-common \
+    && { apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE; } \
+    && add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo xenial main" -u \
+    && apt-get update && apt-get install -y \
+    librealsense2-utils \
+    librealsense2-dev \
+    librealsense2-dbg; }
+### +++++ End of commands for librealsense2 ++++++++
 
 RUN mkdir -p /root/code/realsense_ros \
     && cd /root/code/realsense_ros \
@@ -118,7 +137,8 @@ RUN apt-get update && apt-get -y install python-argparse git-core wget zip \
   clang-3.5 lldb-3.5 python-toml python-numpy python-pip \
   ros-kinetic-gazebo-ros
 
-RUN pip install --upgrade pip && pip install pandas jinja2
+RUN pip install --upgrade pip \
+    && pip install pandas jinja2
 
 RUN cd /root/code \
     && git clone https://github.com/szebedy/autonomous-drone.git \
