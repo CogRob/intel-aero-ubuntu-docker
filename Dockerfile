@@ -9,7 +9,8 @@ RUN apt-get update \
     build-essential \
     locales \
     sudo \
-    wget
+    wget \
+ && apt-get clean
 
 ### Instructions to install Ubuntu 16.04 on intel-aero ###
 # Instructions from https://github.com/intel-aero/meta-intel-aero/wiki/90-(References)-OS-user-Installation
@@ -18,6 +19,8 @@ RUN echo 'deb https://download.01.org/aero/deb xenial main' | sudo tee /etc/apt/
     && wget -qO - https://download.01.org/aero/deb/intel-aero-deb.key | sudo apt-key add - \
     && apt-get -y update \
     && apt-get -y upgrade \
+    && mkdir -p /boot/grub && touch /etc/default/grub \
+    && mkdir -p /etc/acpi/ \
     && apt-get -y install \
       apt-utils \
       ffmpeg \
@@ -31,23 +34,14 @@ RUN echo 'deb https://download.01.org/aero/deb xenial main' | sudo tee /etc/apt/
       libgstreamer-plugins-base1.0-dev \
       libgstrtspserver-1.0-dev \
       python-pip \
-      v4l-utils
+      v4l-utils \
+ && apt-get clean
  
 
-RUN mkdir -p /boot/grub && touch /etc/default/grub && update-grub -y
 RUN pip install pymavlink
-RUN mkdir -p /etc/acpi/
-RUN apt-get -y update && apt-get install -y aero-system
 RUN apt-get -y purge modemmanager
 
-RUN mkdir -p /etc/mavlink-router/config.d
-RUN echo '\n\
-[UdpEndpoint wifi]\n\
-Mode = Normal\n\
-Address = 100.80.226.255\n\
-\n'\
-> /etc/mavlink-router/config.d/qgc.conf
-# RUN systemctl restart mavlink-router
+## RUN systemctl restart mavlink-router
 
 ## RUN aero-bios-update && reboot
 ## 
@@ -117,7 +111,7 @@ RUN [ ! -z "$build_librealsense2" ] \
     librealsense2-utils \
     librealsense2-dev \
     librealsense2-dbg; }
-### +++++ End of commands for librealsense2 ++++++++
+### +++++ End of commands for librealsense2 +++++++++++++++++++++++++++++++++++++
 
 RUN mkdir -p /root/code/realsense_ros \
     && cd /root/code/realsense_ros \
@@ -125,50 +119,34 @@ RUN mkdir -p /root/code/realsense_ros \
     && . /opt/ros/kinetic/setup.sh \
     && catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release
 
-
-RUN apt-get update && apt-get -y install \
-    libcholmod3.0.6 libsuitesparse-dev libeigen3-dev libsuitesparse-dev \
-    protobuf-compiler libnlopt-dev ros-kinetic-octomap \
-    ros-kinetic-octomap-rviz-plugins ros-kinetic-octomap-ros ros-kinetic-sophus
-
-RUN apt-get update && apt-get -y install python-argparse git-core wget zip \
-  python-empy qtcreator cmake build-essential genromfs \
-  ant protobuf-compiler libeigen3-dev libopencv-dev openjdk-8-jdk openjdk-8-jre \
-  clang-3.5 lldb-3.5 python-toml python-numpy python-pip \
-  ros-kinetic-gazebo-ros
-
-RUN pip install --upgrade pip \
-    && pip install pandas jinja2
-
-RUN cd /root/code \
+ARG build_autonomous_drone=
+### +++++ Build commands for autonomous-drone +++++++++++++++++++++++++++++++++++
+RUN [ -z "$build_autonomous_drone" ] || { \
+      apt-get update && apt-get -y install \
+      libcholmod3.0.6 libsuitesparse-dev libeigen3-dev libsuitesparse-dev \
+      protobuf-compiler libnlopt-dev ros-kinetic-octomap \
+      ros-kinetic-octomap-rviz-plugins ros-kinetic-octomap-ros ros-kinetic-sophus \
+      python-argparse git-core wget zip \
+      python-empy qtcreator cmake build-essential genromfs \
+      ant protobuf-compiler libeigen3-dev libopencv-dev openjdk-8-jdk \
+      openjdk-8-jre \
+      clang-3.5 lldb-3.5 python-toml python-numpy python-pip \
+      ros-kinetic-gazebo-ros \
+    && pip install pandas jinja2 \
+    && cd /root/code \
     && git clone https://github.com/szebedy/autonomous-drone.git \
+    && cd autonomous-drone \
     && git submodule update --init --recursive \
     && cd /root/code/realsense_ros/src/ \
-    && for d in ../../autonomous-drone/src/*; do ln -s ../../autonomous-drone/src/$d; done \
+    && for d in ../../autonomous-drone/src/*; do ln -s ../../autonomous-drone/src/$d || true; done \
     && cd /root/code/realsense_ros/ \
-    && catkin_make
-
-RUN cd /root/code/autonomous-drone/px4 \
-   && make posix_sitl_default gazebo
-
-RUN cd /root/code \
-    && wget http://rpg.ifi.uzh.ch/svo2/svo_binaries_1604_kinetic.zip 
-
-### End of Instructions to install Ubuntu 16.04 on intel-aero ###
-
-RUN mkdir -p /etc/pulse
-RUN echo '\n\
-# Connect to the hosts server using the mounted UNIX socket\n\
-default-server = unix:/run/user/@(user_id)/pulse/native\n\
-\n\
-# Prevent a server running in the container\n\
-autospawn = no\n\
-daemon-binary = /bin/true\n\
-\n\
-# Prevent the use of shared memory\n\
-enable-shm = false\n\
-\n'\
-> /etc/pulse/client.conf
+    && . /opt/ros/kinetic/setup.sh \
+    && catkin_make \
+    && cd /root/code/autonomous-drone/px4 \
+    && make posix_sitl_default gazebo \
+    && cd /root/code \
+    && wget http://rpg.ifi.uzh.ch/svo2/svo_binaries_1604_kinetic.zip; }
+### +++++ End of commands for autonomous-drone +++++++++++++++++++++++++++++++++++
 
 RUN apt-get update && apt-get -y install x11vnc xvfb mesa-utils usbutils
 RUN     mkdir ~/.vnc
