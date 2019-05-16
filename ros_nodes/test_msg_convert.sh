@@ -1,9 +1,9 @@
 roscore &
 sleep 2
-python msg_convert.py &
+python t265_to_mavros_bridge.py &
 sleep 2
-rostopic echo /camera/odom/sample/pose &
-rostopic echo /camera/odom/sample/twist &
+rostopic echo /vision_pose/pose_cov &
+rostopic echo /vision_speed/speed_twist &
 
 echo "+++ Expected Pose +++:
 header:

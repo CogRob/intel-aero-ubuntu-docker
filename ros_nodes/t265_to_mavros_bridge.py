@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 import rospy
-from geometry_msgs.msg import PoseStamped, TwistStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped, TwistStamped
 from nav_msgs.msg import Odometry
 from functools import partial
 
 
 def extract_pose_from_odom(odom_msg):
-    pose_stamped = PoseStamped()
+    pose_stamped = PoseWithCovarianceStamped()
     pose_stamped.header.stamp = odom_msg.header.stamp
     pose_stamped.header.frame_id = odom_msg.header.frame_id
-    pose_stamped.pose = odom_msg.pose.pose
+    pose_stamped.pose = odom_msg.pose
     return pose_stamped
 
 
@@ -32,9 +32,9 @@ def publish_pose_twist_from_odom(publishers, odom_msg):
 
 def conversion_node(intopic='/camera/odom/sample',
                     intopic_type = Odometry,
-                    outtopics=['/camera/odom/sample/pose',
-                    '/camera/odom/sample/twist'],
-                    outtopics_type = [PoseStamped, TwistStamped],
+                    outtopics=['/vision_pose/pose_cov',
+                               '/vision_speed/speed_twist'],
+                    outtopics_type = [PoseWithCovarianceStamped, TwistStamped],
                     publisher=publish_pose_twist_from_odom,
                     node_name='converter'):
     rospy.init_node(node_name, anonymous=True)
