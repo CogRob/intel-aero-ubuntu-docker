@@ -1,15 +1,22 @@
 #!/usr/bin/env python
 import rospy
-from geometry_msgs.msg import PoseWithCovarianceStamped, TwistStamped
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, TwistStamped
 from nav_msgs.msg import Odometry
 from functools import partial
 
 
-def extract_pose_from_odom(odom_msg):
+def extract_pose_cov_from_odom(odom_msg):
     pose_stamped = PoseWithCovarianceStamped()
     pose_stamped.header.stamp = odom_msg.header.stamp
     pose_stamped.header.frame_id = odom_msg.header.frame_id
     pose_stamped.pose = odom_msg.pose
+    return pose_stamped
+
+def extract_pose_from_odom(odom_msg):
+    pose_stamped = PoseStamped()
+    pose_stamped.header.stamp = odom_msg.header.stamp
+    pose_stamped.header.frame_id = odom_msg.header.frame_id
+    pose_stamped.pose = odom_msg.pose.pose
     return pose_stamped
 
 
@@ -23,7 +30,7 @@ def extract_twist_from_odom(odom_msg):
 
 def convert_odom_to_pose_twist(odom_msg):
     return [f(odom_msg)
-            for f in (extract_pose_from_odom, extract_twist_from_odom)]
+            for f in (extract_pose_from_odom,)]
 
 def publish_pose_twist_from_odom(publishers, odom_msg):
     for pub, msg in zip(publishers, convert_odom_to_pose_twist(odom_msg)):
@@ -32,9 +39,8 @@ def publish_pose_twist_from_odom(publishers, odom_msg):
 
 def conversion_node(intopic='/camera/odom/sample',
                     intopic_type = Odometry,
-                    outtopics=['/vision_pose/pose_cov',
-                               '/vision_speed/speed_twist'],
-                    outtopics_type = [PoseWithCovarianceStamped, TwistStamped],
+                    outtopics=['/mavros/vision_pose/pose'],
+                    outtopics_type = [PoseStamped],
                     publisher=publish_pose_twist_from_odom,
                     node_name='converter'):
     rospy.init_node(node_name, anonymous=True)

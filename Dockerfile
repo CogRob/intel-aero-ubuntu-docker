@@ -152,6 +152,8 @@ RUN apt-get update && apt-get -y install x11vnc xvfb mesa-utils usbutils
 RUN     mkdir ~/.vnc
 RUN     x11vnc -storepasswd 1234 ~/.vnc/passwd
 
+RUN apt-get update && apt-get -y install tmux vim ssh git ros-kinetic-dynamic-reconfigure
+
 RUN pip install --upgrade pip
 # RUN pip install Cython numpy
 # RUN pip install pyrealsense
@@ -162,5 +164,12 @@ RUN chmod +x /usr/bin/systemctl
 COPY post-install.sh /root/post-install.sh
 RUN chmod +x /root/post-install.sh
 CMD ["/root/post-install.sh"]
+RUN mkdir -p /boot/grub \
+     && touch /boot/grub/menu.lst  \
+     && apt-get update && yes | apt-get install -y aero-system tmux vim && apt-get clean
+RUN cd /root/code/realsense_ros/ \
+	&& . /opt/ros/kinetic/setup.sh \
+	&& rosdep install --from-path src
+	
 
 # WORKDIR /data/cogrob/code
