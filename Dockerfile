@@ -19,7 +19,8 @@ RUN echo 'deb https://download.01.org/aero/deb xenial main' | sudo tee /etc/apt/
     && wget -qO - https://download.01.org/aero/deb/intel-aero-deb.key | sudo apt-key add - \
     && apt-get -y update \
     && apt-get -y upgrade \
-    && mkdir -p /boot/grub && touch /etc/default/grub \
+    && mkdir -p /etc/default && touch /etc/default/grub \
+    && mkdir -p /boot/grub && touch /boot/grub/menu.lst \
     && mkdir -p /etc/acpi/ \
     && apt-get -y install \
       apt-utils \
@@ -35,8 +36,8 @@ RUN echo 'deb https://download.01.org/aero/deb xenial main' | sudo tee /etc/apt/
       libgstrtspserver-1.0-dev \
       python-pip \
       v4l-utils \
+      aero-system \
  && apt-get clean
- 
 
 RUN pip install pymavlink
 RUN apt-get -y purge modemmanager
@@ -61,6 +62,8 @@ RUN apt-get -y update && \
     ros-kinetic-mavros \
     ros-kinetic-cv-bridge \
     ros-kinetic-image-transport \
+    ros-kinetic-dynamic-reconfigure \
+    tmux \
     ntpdate \
     net-tools \
     iputils-ping \
@@ -113,10 +116,12 @@ RUN [ ! -z "$build_librealsense2" ] \
     librealsense2-dbg; }
 ### +++++ End of commands for librealsense2 +++++++++++++++++++++++++++++++++++++
 
-RUN mkdir -p /root/code/realsense_ros \
-    && cd /root/code/realsense_ros \
+ENV REALSENSE_ROS_WS /root/code/realsense_ros
+RUN mkdir -p ${REALSENSE_ROS_WS} \
+    && cd ${REALSENSE_ROS_WS} \
     && git clone -b 2.2.3 https://github.com/IntelRealSense/realsense-ros.git  src \
     && . /opt/ros/kinetic/setup.sh \
+    && rosdep install --from-path src \
     && catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release
 
 ARG build_autonomous_drone=
@@ -137,9 +142,9 @@ RUN [ -z "$build_autonomous_drone" ] || { \
     && git clone https://github.com/szebedy/autonomous-drone.git \
     && cd autonomous-drone \
     && git submodule update --init --recursive \
-    && cd /root/code/realsense_ros/src/ \
+    && cd ${REALSENSE_ROS_WS}/src/ \
     && for d in ../../autonomous-drone/src/*; do ln -s ../../autonomous-drone/src/$d || true; done \
-    && cd /root/code/realsense_ros/ \
+    && cd ${REALSENSE_ROS_WS}/ \
     && . /opt/ros/kinetic/setup.sh \
     && catkin_make \
     && cd /root/code/autonomous-drone/px4 \
@@ -157,6 +162,7 @@ RUN pip install --upgrade pip
 # RUN pip install pyrealsense
 RUN geographiclib-get-geoids egm96-5
 
+COPY intel_aero_robot ${REALSENSE_ROS_WS}/src/intel_aero_robot
 COPY systemctl.py /usr/bin/systemctl
 RUN chmod +x /usr/bin/systemctl
 COPY post-install.sh /root/post-install.sh

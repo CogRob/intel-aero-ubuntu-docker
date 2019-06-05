@@ -1,6 +1,5 @@
-sudo systemctl stop mavlink-router
-sudo systemctl stop csd
-sudo systemctl stop avahi-daemon
+[ ! -z "$(pgrep mavlink-routerd)" ] && systemctl stop mavlink-router
+[ ! -z "$(pgrep csd)" ] && systemctl stop csd
 if [ ! -z $DISPLAY ]; then
     XAUTH=/tmp/.docker.xauth
     xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
@@ -21,4 +20,7 @@ docker run -it   --rm  \
        $DISPOPTS $NVIDIAOPTS \
        --privileged \
        --net host \
-       --security-opt seccomp=unconfined  intel-aero-ubuntu  bash
+       --name intel-aero-ubuntu \
+       -v $(pwd):$(pwd) \
+       --workdir $(pwd) \
+       --security-opt seccomp=unconfined  intel-aero-ubuntu

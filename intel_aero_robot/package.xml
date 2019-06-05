@@ -1,0 +1,9 @@
+<package format="2">
+  <name>intel_aero_robot</name>
+  <version>0.0.1</version>
+  <description>
+    Package for top level intel aero robot scripts and launch files
+  </description>
+  <maintainer email="vdhiman@ucsd.edu">Vikas Dhiman</maintainer>
+  <license>BSD</license>
+</package>
