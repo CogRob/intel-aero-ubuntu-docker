@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find intel_aero_robot)/launch/$(env VISODOM).launch" />
+  <include file="$(find intel_aero_robot)/launch/mavros.launch" />
+</launch>
