@@ -1,4 +1,3 @@
 <launch>
-    <param name="fcu_url" value="tcp://$(env ROS_IP):5760" />
-    <node name="mavros_node" type="mavros_node" pkg="mavros" />
+    <node name="mavros" type="mavros_node" pkg="mavros" args="_fcu_url:=tcp://localhost:5760" />
 </launch>

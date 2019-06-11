@@ -169,7 +169,7 @@ COPY systemctl.py /usr/bin/systemctl
 RUN chmod +x /usr/bin/systemctl
 COPY post-install.sh /root/post-install.sh
 RUN chmod +x /root/post-install.sh
-CMD ["/root/post-install.sh"]
+#CMD ["/root/post-install.sh"]
 RUN mkdir -p /boot/grub \
      && touch /boot/grub/menu.lst  \
      && apt-get update && yes | apt-get install -y aero-system tmux vim && apt-get clean

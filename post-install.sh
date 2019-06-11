@@ -14,8 +14,8 @@
 # sed -i -e "s#/dev/ttyS1#/dev/${TTYID}#" /etc/mavlink-router/main.conf
 # sed -i -e "s#/tty/ttyS1#/tty/${TTYID}#" /lib/systemd/system/mavlink-routerd.service
 echo 4 > /sys/class/tty/ttyS1/rx_trig_bytes
-nohup /usr/bin/mavlink-routerd &> /var/log/mavlink-routerd.log &
-nohup /usr/bin/csd &> /var/log/csd.log &
+/usr/bin/mavlink-routerd &> /var/log/mavlink-routerd.log &
+/usr/bin/csd &> /var/log/csd.log &
 . ${REALSENSE_ROS_WS}/src/intel_aero_robot/setup.sh
 roslaunch intel_aero_robot on_robot.launch 2>&1 > /tmp/on_robot_launch.log &
 bash

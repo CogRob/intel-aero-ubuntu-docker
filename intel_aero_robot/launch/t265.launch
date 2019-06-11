@@ -10,6 +10,6 @@
         Mavros publishes /mavros/local_position/pose with frame_id 'map'
         Publish a dummy transform from map to camera_odom_frame
         -->
-    <node pkg="tf" type="static_transform_publisher" name="t265_to_mavros_bridge"
+    <node pkg="tf" type="static_transform_publisher" name="map_to_camera_odom_frame_tf"
     args="0 0 0 0 0 0 map camera_odom_frame 10" />
 </launch>
