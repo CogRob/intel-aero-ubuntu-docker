@@ -1,15 +1,12 @@
 <launch>
-    <include file="$(find realsense2_camera)/launch/rs_t265.launch" />
-
-    <!-- Converts /camera/odom/sample (Odometry) from t265 to
-         /mavros/vision_pose/pose (PoseStamped)
-    -->
-    <node pkg="intel_aero_robot" type="t265_to_mavros_bridge.py" name="t265_to_mavros_bridge" />
-
     <!--
         Mavros publishes /mavros/local_position/pose with frame_id 'map'
         Publish a dummy transform from map to camera_odom_frame
         -->
     <node pkg="tf" type="static_transform_publisher" name="map_to_camera_odom_frame_tf"
     args="0 0 0 0 0 0 map camera_odom_frame 10" />
+    <group>
+      <remap from="camera/odom/sample" to="mavros/odometry/odom" />
+      <include file="$(find realsense2_camera)/launch/rs_t265.launch" />
+    </group>
 </launch>
